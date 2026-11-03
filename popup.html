@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="head">
+    <h1 class="head__title">Pocket</h1>
+    <label class="switch" for="enabled">
+      <span class="switch__label">Hover button</span>
+      <input type="checkbox" id="enabled" class="switch__input">
+      <span class="switch__track"><span class="switch__thumb"></span></span>
+    </label>
+  </header>
+
+  <section class="field">
+    <label class="field__label" for="folder">Folder</label>
+    <div class="path">
+      <span class="path__prefix">Downloads /</span>
+      <input type="text" id="folder" class="path__input" spellcheck="false"
+             autocomplete="off" placeholder="Pocket" maxlength="60">
+    </div>
+    <p class="field__hint" id="hint">Chrome can only file downloads inside your Downloads folder.</p>
+  </section>
+
+  <div class="rows">
+    <label class="row" for="perSiteSubfolder">
+      <span class="row__text">
+        <span class="row__title">Group by website</span>
+        <span class="row__note">Adds a subfolder named after the site</span>
+      </span>
+      <input type="checkbox" id="perSiteSubfolder" class="switch__input">
+      <span class="switch__track"><span class="switch__thumb"></span></span>
+    </label>
+
+    <label class="row" for="saveAs">
+      <span class="row__text">
+        <span class="row__title">Ask every time</span>
+        <span class="row__note">Opens the file dialog on each save</span>
+      </span>
+      <input type="checkbox" id="saveAs" class="switch__input">
+      <span class="switch__track"><span class="switch__thumb"></span></span>
+    </label>
+
+    <label class="row" for="detectBackgrounds">
+      <span class="row__text">
+        <span class="row__title">Include background images</span>
+        <span class="row__note">Catches images set in CSS, not just photos</span>
+      </span>
+      <input type="checkbox" id="detectBackgrounds" class="switch__input">
+      <span class="switch__track"><span class="switch__thumb"></span></span>
+    </label>
+  </div>
+
+  <section class="field field--inline">
+    <label class="field__label" for="minSize">Skip images smaller than</label>
+    <select id="minSize" class="select">
+      <option value="48">48 px</option>
+      <option value="96">96 px</option>
+      <option value="160">160 px</option>
+      <option value="320">320 px</option>
+    </select>
+  </section>
+
+  <footer class="foot">
+    <button type="button" id="open" class="button">Open Downloads</button>
+    <span class="saved" id="saved" aria-live="polite">Saved</span>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>
