@@ -1,53 +1,146 @@
-# Pocket
+# ImagePocket
 
-A Chrome extension that puts a small save button on any image you hover, and files it into a folder you choose.
+A Chrome extension that adds a small save button to any image you hover over. Click it and the image goes straight into a folder you choose, with no "Save image as…" dialog and no hunting through Downloads.
+
+- One-click saving from any website
+- Every image goes into one folder, with optional subfolders for each site
+- Works on lazy-loaded, `blob:` and hotlink-protected images
+- A right-click menu option as a backup
+- No account, no tracking, and no network calls of its own
+
+---
 
 ## Install
 
-1. Unzip this folder somewhere permanent (Chrome reads it from disk every launch).
-2. Go to `chrome://extensions`.
-3. Turn on **Developer mode** (top right).
-4. Click **Load unpacked** and pick this folder.
-5. Pin the icon, open the popup, and set your folder name.
+ImagePocket isn't on the Chrome Web Store yet, so you load it as an unpacked extension.
 
-## How it works
+1. **Get the code.** Pick one:
+   ```bash
+   git clone https://github.com/invincibleaashi/imagepocket.git
+   ```
+   or click **Code → Download ZIP** on GitHub and unzip it.
+   Keep the folder somewhere permanent: Chrome reads it from disk every time it starts, and the extension stops working if the folder is moved or deleted.
+2. Open `chrome://extensions` in Chrome.
+3. Turn on **Developer mode** (the switch in the top-right corner).
+4. Click **Load unpacked** and select the `imagepocket` folder (the one that contains `manifest.json`).
+5. Click the puzzle-piece icon in the toolbar and **pin** ImagePocket so its icon is always visible.
 
-Hover an image → a 32 px button fades in at its top-right corner → click it. The button shows a spinner while the file transfers, then a green check, then returns to idle. A red state with a tooltip explains anything that failed.
+It also works in other Chromium browsers, such as Edge, Brave, Arc and Opera, through their own extensions page.
 
-Right-clicking an image also gives you **Save image to [your folder]**.
+---
 
-## About the folder
+## How to use it
 
-Chrome extensions cannot write anywhere on your disk. The `downloads` API only accepts paths *relative to your Downloads folder*, so "Pocket" means `~/Downloads/Pocket`. Nested names work too — type `Reference/Textures` and you get `~/Downloads/Reference/Textures`.
+### Save an image
 
-If you want files elsewhere, either point Chrome's download location at that place (`chrome://settings/downloads`) or turn on **Ask every time** in the popup, which opens the system save dialog instead.
+1. Open any web page.
+2. Hover over an image. A round save button fades in at the image's top-right corner.
+3. Click it. The button shows:
+   - **a spinner** while the file is downloading
+   - **a green check** once it's saved (hover over it to see the exact path)
+   - **a red mark** if the save failed (hover over it to see why)
 
-## Settings
+By default, images are saved to `~/Downloads/Pocket/`.
 
-| Setting | What it does |
+The button also works from the keyboard: Tab to it, then press **Enter** or **Space**.
+
+### Save from the right-click menu
+
+Right-click any image and choose **Save image to Pocket** (the menu shows the folder name you've set). This is handy when a site covers its images with an invisible layer and the hover button can't reach them.
+
+### Change the settings
+
+Click the ImagePocket icon in the toolbar to open the settings popup. Changes save automatically, and a small "Saved" message confirms each one.
+
+| Setting | What it does | Default |
+| --- | --- | --- |
+| **Hover button** | Shows or hides the on-page button. Right-click saving still works when it's off. | On |
+| **Folder** | Subfolder inside Downloads where images are saved | `Pocket` |
+| **Group by website** | Adds a subfolder for each site, e.g. `Pocket/unsplash.com/` | Off |
+| **Ask every time** | Opens the system save dialog for each image | Off |
+| **Include background images** | Also detects images set through CSS backgrounds, not just `<img>` tags | Off |
+| **Skip images smaller than** | Keeps the button off icons, avatars and spacers (48 / 96 / 160 / 320 px) | 96 px |
+
+**Open Downloads** opens your Downloads folder in Finder or Explorer.
+
+### Choosing a folder
+
+Chrome only lets extensions save inside your Downloads folder, so the folder name is always relative to it:
+
+| You type | Files are saved to |
 | --- | --- |
-| Hover button | Turns the on-page button off without disabling the extension |
-| Folder | Subfolder of Downloads that receives every save |
-| Group by website | Adds a subfolder named after the site the image came from |
-| Ask every time | Opens the file dialog on each save |
-| Include background images | Also catches images set through CSS, not just `<img>` |
-| Skip images smaller than | Keeps the button away from icons, avatars and spacers |
+| `Pocket` | `~/Downloads/Pocket/` |
+| `Reference/Textures` | `~/Downloads/Reference/Textures/` |
+| `Moodboard` + **Group by website** | `~/Downloads/Moodboard/pinterest.com/` |
 
-## Files
+To save somewhere outside Downloads, either:
+- change Chrome's download location at `chrome://settings/downloads`, or
+- turn on **Ask every time** and choose a location for each image.
 
-- `manifest.json` — Manifest V3 config and permissions
-- `content.js` — hover detection and the button, isolated in a shadow root so no site's CSS can reach it
-- `background.js` — filename and folder logic, downloads, right-click menu
-- `popup.html` / `popup.css` / `popup.js` — settings
+When a file with the same name already exists, Chrome adds a number (`photo (1).jpg`) instead of overwriting it.
 
-## Two details worth knowing
+---
 
-**Why the shadow root.** The button lives in a shadow DOM with `all: initial`, so aggressive page stylesheets can't restyle or hide it.
+## Troubleshooting
 
-**Why there are two download paths.** Most images download straight from their URL. When that's blocked (hotlink protection, `blob:` URLs from canvas or lazy-loaders, or a URL with no file extension), the service worker asks the content script to fetch the bytes from inside the page — where cookies and referrer still apply — and hands back a data URL instead. Failures surface on the button rather than silently.
+**The button doesn't appear on a page.**
+- Pages that were already open when you installed the extension need a reload.
+- The image may be smaller than your **Skip images smaller than** setting.
+- If the image is a CSS background, turn on **Include background images**.
+- Chrome blocks extensions on its own pages (`chrome://…`) and on the Chrome Web Store.
 
-## Tweaks you might want
+**The button turns red.**
+Hover over it to read the reason. The common ones are:
+- *The site blocked the download*: the site refuses outside requests. ImagePocket automatically retries from inside the page, but some sites still refuse.
+- *The image is no longer at that address*: the image link is broken or has expired.
+- *Chrome could not write to that folder*: check that the folder name is valid and that the disk isn't full.
 
-- Button corner: `buttonCorner` in storage accepts `top-right`, `top-left`, `bottom-right`, `bottom-left`. There's no UI for it yet; add a select in the popup or set it from the console.
-- Filename shape: see `deriveName()` in `background.js` if you want dates or the site name prefixed.
-- Keyboard shortcut: add a `commands` block to the manifest and save the last hovered image on a hotkey.
+**Files have odd names like `image-20261103-142210.jpg`.**
+The image URL didn't contain a usable filename (common with CDNs and generated images), so ImagePocket names the file after the date and time it was saved.
+
+**I changed the code and nothing happened.**
+Go to `chrome://extensions`, click the reload icon on the ImagePocket card, then reload the web page.
+
+---
+
+## Permissions
+
+| Permission | Why it's needed |
+| --- | --- |
+| `downloads` | To save files into your chosen folder |
+| `storage` | To remember your settings and sync them across your Chrome profile |
+| `contextMenus` | For the right-click "Save image to…" option |
+| Access to all sites | So the hover button can appear on any page you visit |
+
+ImagePocket has no server and collects no data. The only network requests it makes are for the images you choose to save.
+
+---
+
+## For developers
+
+### Files
+
+| File | Role |
+| --- | --- |
+| `manifest.json` | Manifest V3 configuration and permissions |
+| `content.js` | Detects hovered images and draws the save button inside a shadow root |
+| `background.js` | Service worker: builds filenames and folders, runs downloads, handles the right-click menu |
+| `popup.html` / `popup.css` / `popup.js` | The settings popup |
+| `icons/` | Toolbar and store icons (16, 32, 48 and 128 px) |
+
+There's no build step. Edit the files, then reload the extension at `chrome://extensions`.
+
+### How a save works
+
+1. `content.js` finds the image's real source, preferring `currentSrc` and then the largest `srcset` candidate, and sends it to the service worker.
+2. `background.js` builds the target path (folder, then the site subfolder if enabled, then the filename) and downloads directly from the URL.
+3. If that fails (hotlink protection, a `blob:` or `data:` URL, or a URL with no file extension), the service worker asks the content script to fetch the image from inside the page, where the site's cookies and referrer still apply. The content script returns the image as a data URL, which is then saved.
+4. The result goes back to the button, which shows the check or the error.
+
+The button sits in a shadow DOM with `all: initial`, so a site's CSS can't restyle or hide it.
+
+### Ideas for extending it
+
+- **Button corner:** the `buttonCorner` setting already accepts `top-right`, `top-left`, `bottom-right` or `bottom-left`, but there's no control for it in the popup yet.
+- **Filename format:** edit `deriveName()` in `background.js` to add a date or the site name to filenames.
+- **Keyboard shortcut:** add a `commands` entry to the manifest so a hotkey saves the image currently under the cursor.
